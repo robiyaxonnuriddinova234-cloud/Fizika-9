@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9-sinf Fizika — Laboratoriya ishlari va masalalar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px 15px;
+        }
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+        }
+        header {
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        h1 {
+            color: #0f172a;
+            margin: 0 0 8px 0;
+            font-size: 28px;
+        }
+        p.subtitle {
+            color: #64748b;
+            margin: 0;
+            font-size: 16px;
+        }
+        .search-box {
+            margin-bottom: 25px;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #cbd5e1;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #searchInput:focus {
+            border-color: #2563eb;
+        }
+        .section-title {
+            background: linear-gradient(90deg, #eff6ff, #dbeafe);
+            color: #1d4ed8;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 25px 0 12px 0;
+            border-left: 5px solid #2563eb;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        li a {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #334155;
+            background: #f8fafc;
+            padding: 14px 16px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            height: 100%;
+        }
+        li a:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+            font-size: 16px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 35px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>9-sinf Fizika</h1>
+        <p class="subtitle">Laboratoriya ishlari, testlar va masalalar to‘plami</p>
+    </header>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Mavzu, test yoki laboratoriya nomini qidiring...">
+    </div>
+
+    <div id="content">
+        <div class="loading">Fayllar ro‘yxati yuklanmoqda...</div>
+    </div>
+
+    <footer>
+        9-sinf Fizika fanidan elektron qo‘llanma
+    </footer>
+</div>
+
+<script>
+    const username = "robiyaxonnuriddinova234-cloud";
+    const repo = "Fizika-9";
+
+    async function loadFiles() {
+        const contentDiv = document.getElementById("content");
+        try {
+            const response = await fetch(`https://api.github.com/repos/${username}/${repo}/contents/`);
+            const files = await response.json();
+
+            const htmlFiles = files.filter(file => 
+                file.name.endsWith(".html") && file.name.toLowerCase() !== "index.html"
+            );
+
+            const categories = {
+                "Testlar va Nazorat ishlari": [],
+                "Laboratoriya ishlari": [],
+                "Mavzular va Masalalar": []
+            };
+
+            htmlFiles.forEach(file => {
+                const lowerName = file.name.toLowerCase();
+                if (lowerName.includes("test") || lowerName.includes("nazorat") || lowerName.includes("imtihon")) {
+                    categories["Testlar va Nazorat ishlari"].push(file);
+                } else if (lowerName.includes("lab")) {
+                    categories["Laboratoriya ishlari"].push(file);
+                } else {
+                    categories["Mavzular va Masalalar"].push(file);
+                }
+            });
+
+            contentDiv.innerHTML = "";
+
+            for (const [category, items] of Object.entries(categories)) {
+                if (items.length > 0) {
+                    const title = document.createElement("div");
+                    title.className = "section-title";
+                    title.textContent = category;
+                    contentDiv.appendChild(title);
+
+                    const ul = document.createElement("ul");
+                    items.forEach(file => {
+                        const li = document.createElement("li");
+                        const a = document.createElement("a");
+                        a.href = encodeURIComponent(file.name);
+                        // Fayl nomini chiroyli ko'rinishga keltirish
+                        let cleanName = file.name
+                            .replace(/\.html$/i, "")
+                            .replace(/_/g, " ")
+                            .replace(/\s+/g, " ")
+                            .trim();
+                        a.textContent = cleanName;
+                        li.appendChild(a);
+                        ul.appendChild(li);
+                    });
+                    contentDiv.appendChild(ul);
+                }
+            }
+
+            // Qidiruv funksiyasi
+            document.getElementById("searchInput").addEventListener("input", function(e) {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll("#content li").forEach(li => {
+                    const text = li.textContent.toLowerCase();
+                    li.style.display = text.includes(term) ? "" : "none";
+                });
+            });
+
+        } catch (error) {
+            contentDiv.innerHTML = "<p style='color:red; text-align:center;'>Fayllarni yuklashda xatolik yuz berdi. Internet aloqasini tekshiring.</p>";
+        }
+    }
+
+    loadFiles();
+</script>
+
+</body>
+</html>
